@@ -1,2 +1,2 @@
 # Tic-Tac-Toe
-Tic-Tac-Toe in the command line
+A game of Tic-Tac-Toe played in the command line.

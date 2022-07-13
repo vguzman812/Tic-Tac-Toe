@@ -1,5 +1,6 @@
+# frozen_string_literal: true
 
-require_relative 'display.rb'
+require_relative "display.rb"
 
 # Contains the logic to play the game
 class Game
@@ -11,6 +12,7 @@ class Game
     @first_player = nil
     @second_player = nil
     @current_player = nil
+    @opponent = nil
   end
 
   def play
@@ -20,21 +22,21 @@ class Game
     conclusion
   end
 
-  def create_player(number) 
+  def create_player(number)
     puts display_name_prompt(number)
     name = gets.chomp
-    symbol = ''
-        if number == 1
-            symbol = 'X'
-            puts "#{name}'s symbol is #{symbol}."
-        elsif number == 2
-            symbol = 'O'
-            puts "#{name}'s symbol is #{symbol}."
-        end
-    Player.new(name, symbol) #HumanPlayer.new(name, symbol)
+    symbol = ""
+    if number == 1
+      symbol = "X"
+      puts "#{name}'s symbol is #{symbol}."
+    elsif number == 2
+      symbol = "O"
+      puts "#{name}'s symbol is #{symbol}."
+    end
+    Player.new(name, symbol)
   end
 
-  def human_turn(player)
+  def turn(player)
     cell = turn_input(player)
     board.update_board(cell - 1, player.symbol)
     board.show
@@ -42,59 +44,58 @@ class Game
 
   private
 
-  #recently modified to add ComputerPlayer.new("O") for future implementation
   def game_set_up
     puts display_intro
-    if gets.chomp.to_i == 1
+    input = gets.chomp.to_i
+    if input == 1
       @first_player = create_player(1)
       @second_player = create_player(2)
-    elsif gets.chomp.to_i == 2
+    elsif input == 2
       @first_player = create_player(1)
-      @second_player = ComputerPlayer.new("O")
+      @second_player = Player.new("Computer", "O")
     else
       puts display_input_warning
+      game_set_up
     end
   end
 
-  def symbol_input(duplicate)
-    player_symbol_prompts(duplicate)
-    input = gets.chomp
-    return input if input.match?(/^[^0-9]$/) && input != duplicate
-
-    puts display_input_warning
-    symbol_input(duplicate)
-  end
-  
-  #Recently modified to differentiate between HumanPlayer and ComputerPlayer
   def player_turns
     @current_player = first_player
-    if second_player.class == HumanPlayer
-      until board.full?
-        human_turn(current_player)
-        break if board.game_over?
+    until board.full?
+      turn(current_player)
+      break if board.game_over?
 
-        @current_player = switch_current_player
-      end
-    elsif second_player.class == ComputerPlayer
-      until board.full?
-        
+      @current_player = switch_current_player
     end
   end
 
-  def turn_input(player) #possibly place this in a human player class
-    puts display_player_turn(player.name, player.symbol)
-    number = gets.chomp.to_i
-    return number if board.valid_move?(number)
+  def turn_input(player)
+    if player.name == "Computer"
+      number = random_position()
 
-    puts display_input_warning
+      if board.valid_move?(number)
+        puts display_computer_turn(number)
+        return number
+      end
+    else
+      puts display_player_turn(player.name, player.symbol)
+      number = gets.chomp.to_i
+      return number if board.valid_move?(number)
+      puts display_input_warning
+    end
     turn_input(player)
   end
 
+  def random_position
+    random_number = rand(1..9)
+    random_number
+  end
+
   def switch_current_player
-    if current_player == first_player
-      second_player
+    if @current_player == @first_player
+      @second_player
     else
-      first_player
+      @first_player
     end
   end
 
